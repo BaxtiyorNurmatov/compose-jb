@@ -9,43 +9,9 @@ interface SingleDirectionMoveScope {
     fun moveBy(pixels: Float)
 }
 
-interface SingleDirectionMovable {
-
-    suspend fun move(
-        movePriority: MutatePriority = MutatePriority.Default,
-        block: suspend SingleDirectionMoveScope.() -> Unit
-    )
-
-    fun dispatchRawMovement(delta: Float)
-
-    val isMoveInProgress: Boolean
-
-}
-
-typealias SingleDirectionMoveDeltaConsumer = (Float) -> Unit
-
-fun movableState(
-    consumeMoveDelta: SingleDirectionMoveDeltaConsumer
-): SingleDirectionMovable {
-    return DefaultSingleDirectionMovableState(consumeMoveDelta)
-}
-
-@Composable
-fun rememberMovableState(
-    consumeMoveDelta: SingleDirectionMoveDeltaConsumer
-): SingleDirectionMovable {
-    return DefaultSingleDirectionMovableState(consumeMoveDelta)
-}
-
-suspend fun SingleDirectionMovable.stopMovement(
-    movePriority: MutatePriority = MutatePriority.Default
+internal class SingleDirectionMovable(
+    val onMoveDelta: (Float) -> Unit
 ) {
-    move(movePriority){}
-}
-
-private class DefaultSingleDirectionMovableState(
-    val onMoveDelta: SingleDirectionMoveDeltaConsumer
-) : SingleDirectionMovable {
 
     private val singleDirectionMoveScope = object : SingleDirectionMoveScope {
         override fun moveBy(pixels: Float) = onMoveDelta(pixels)
@@ -55,7 +21,7 @@ private class DefaultSingleDirectionMovableState(
 
     private val isMovingState = mutableStateOf(false)
 
-    override suspend fun move(
+    suspend fun move(
         movePriority: MutatePriority,
         block: suspend SingleDirectionMoveScope.() -> Unit
     ) {
@@ -66,9 +32,9 @@ private class DefaultSingleDirectionMovableState(
         }
     }
 
-    override val isMoveInProgress: Boolean
+    val isMoveInProgress: Boolean
         get() = isMovingState.value
 
-    override fun dispatchRawMovement(delta: Float) = onMoveDelta(delta)
+    fun dispatchRawMovement(delta: Float) = onMoveDelta(delta)
 
 }

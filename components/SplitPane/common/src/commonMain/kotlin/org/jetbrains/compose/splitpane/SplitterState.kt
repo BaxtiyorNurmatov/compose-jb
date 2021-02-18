@@ -7,14 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.structuralEqualityPolicy
 import org.jetbrains.compose.movable.SingleDirectionMovable
 import org.jetbrains.compose.movable.SingleDirectionMoveScope
-import org.jetbrains.compose.movable.movableState
 
 class SplitterState(
     initialPosition: Float,
     minPosition: Float = 0f,
     maxPosition: Float = Float.POSITIVE_INFINITY,
     private val interactionState: InteractionState
-) : SingleDirectionMovable {
+) {
 
     private val _position = mutableStateOf(initialPosition, structuralEqualityPolicy())
 
@@ -46,7 +45,7 @@ class SplitterState(
 
     private val _minPosition = mutableStateOf(minPosition, structuralEqualityPolicy())
 
-    private val singleDirectionMovableState = movableState(this::onMove)
+    private val singleDirectionMovableState = SingleDirectionMovable(this::onMove)
 
     private fun onMove(delta: Float) {
         interactionState.addInteraction(Interaction.Dragged)
@@ -54,13 +53,13 @@ class SplitterState(
         interactionState.removeInteraction(Interaction.Dragged)
     }
 
-    override suspend fun move(
+    suspend fun move(
         movePriority: MutatePriority,
         block: suspend SingleDirectionMoveScope.() -> Unit) = singleDirectionMovableState.move(movePriority,block)
 
-    override fun dispatchRawMovement(delta: Float) = singleDirectionMovableState.dispatchRawMovement(delta)
+    fun dispatchRawMovement(delta: Float) = singleDirectionMovableState.dispatchRawMovement(delta)
 
-    override val isMoveInProgress: Boolean
+    val isMoveInProgress: Boolean
         get() = singleDirectionMovableState.isMoveInProgress
 
     private var percent: Float = 0f
